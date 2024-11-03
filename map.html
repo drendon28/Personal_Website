@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Travel Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Initialize the map
+    var map = L.map('map').setView([20, 0], 2);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    // Function to set the color based on travel status
+    function getColor(traveled) {
+        return traveled ? '#1f77b4' : '#ffffff'; // Dark blue for traveled, white for not traveled
+    }
+
+    // Function to style the countries
+    function style(feature) {
+        return {
+            fillColor: getColor(feature.properties.traveled),
+            weight: 1,
+            opacity: 1,
+            color: 'gray',
+            fillOpacity: 0.7
+        };
+    }
+
+    // Fetch the GeoJSON file with country boundaries
+    fetch('countries.geojson')
+        .then(response => response.json())
+        .then(data => {
+            // Log all country names
+            const countryNames = data.features.map(feature => feature.properties.name);
+            console.log('Country Names:', countryNames);
+
+            const traveledCountries = ['United States of America', 'Canada', 'France', 'Spain', 'Italy', 'Germany', 'Guatemala', 'Costa Rica', 'Colombia', 'Chile', 'Peru', 'Israel', 'Jordan', 'United Republic of Tanzania', 'Botswana', 'Zambia', 'Zimbabwe', 'South Africa', 'Namibia', 'Portugal', 'Malta', 'Ireland', 'Iceland', 'Australia', 'New Zealand', 'United Kingdom', 'Indonesia', 'Singapore', 'United Arab Emirates', 'Qatar', 'Japan', 'South Korea', 'Turkey', 'Finland', 'Austria', 'Czech Republic', 'Belgium', 'Netherlands', 'Denmark', 'Hungary', 'Cuba', 'Bahamas', 'Switzerland']; // Update as needed
+            
+            data.features.forEach(feature => {
+                feature.properties.traveled = traveledCountries.includes(feature.properties.name);
+                console.log(feature.properties.name, feature.properties.traveled); // Log each country and its traveled status
+            });
+
+            // Add the countries to the map
+            L.geoJson(data, {
+                style: style,
+                onEachFeature: function(feature, layer) {
+                    layer.bindTooltip(feature.properties.name);
+                }
+            }).addTo(map);
+        })
+        .catch(error => console.error('Error loading GeoJSON:', error));
+</script>
+
+</body>
+</html>
